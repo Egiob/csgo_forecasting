@@ -7,8 +7,6 @@ It includes :
 - a model and a decision rule that is supposed to beat a particular bookmaker, only using the latter features.
 - some tools and simulations of what can be done in the field of Counter Strike odds prediction.
 
-You can find a whole detailled explanation of the content of the project (here)[report.ipynb].
+You can find a whole detailled explanation of the content of the project [here](report.pdf).
 
 If you have any questions feel free to contact me !
-
-You can find the whole report [here](report.pdf).
