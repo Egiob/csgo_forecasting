@@ -1,13 +1,8 @@
 import pandas as pd
-from urllib.request import urlopen, Request
+from urllib.request import urlopen
 import json
-import numpy as np
-import sqlite3
-import datetime
-from bs4 import BeautifulSoup
-import re
-from django.templatetags.static import static
 from .module_data import add_to_history
+from io import StringIO
 
 
 def get_teams(token):

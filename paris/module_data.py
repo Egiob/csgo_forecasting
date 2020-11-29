@@ -1,13 +1,7 @@
 import pandas as pd
-from urllib.request import urlopen, Request
-import json
 import numpy as np
 import sqlite3
 import datetime
-from bs4 import BeautifulSoup
-import re
-from django.utils import timezone
-from django.templatetags.static import static
 import pytz
 
 DATA_DIR = './var/'
@@ -103,116 +97,6 @@ def parse_team_name(el):
             
 
                     
-def build_data_from_hist_rank(history,rankings):
-    X = history.merge(rankings,left_on='team1',right_on='name').merge(rankings,left_on='team2',right_on='name')
-    X = compute_teams_fitness(X,team='team1')
-    X = compute_teams_fitness(X,team='team2')
-    X = compute_teams_antecedent(X)
-    X = X.sort_values('date',ascending=False)
-    #X = X.drop(['team1','team2'],axis=1)
-    winners = X['score'].apply(lambda x: int(x[0]>=x[4]))
-    X = X.drop(['score','winner','name_x','name_y'],axis=1)
-    Y = pd.DataFrame(winners)
-    return X,Y
-
-
-def find_features_to_compute(old_features,history):
-    X = old_features.drop_duplicates()[['team1','team2','date']]
-    X.date = pd.to_datetime(X.date)
-    history.date = pd.to_datetime(history.date)
-    #x_merged = history.merge(rankings,left_on='team1',right_on='name').merge(rankings,left_on='team2',right_on='name')
-    #x_merged = x_merged.drop_duplicates()
-    
-    inter = history.merge(X,on=['team1','team2','date'],how='inner').drop_duplicates()
-    df = history.merge(inter, how = 'outer' ,indicator=True).loc[lambda x : x['_merge']=='left_only']
-    df['date'] = pd.to_datetime(df['date'])
-    df = df.sort_values('date')[df['date'] > timezone.now() -timezone.timedelta(days=30)].drop(['_merge'],axis=1).drop_duplicates()
-    return df
-
-
-
-def get_predictions(matches,clf):
-    matches_list = matches[matches['opponents'].str.len() ==2][matches['status'] == 'not_started' ]
-    n = matches_list.shape[0]
-    matches_to_predict=[]
-    for i in range(n):
-        match=matches_list.iloc[i]
-        team1 = parse_team_name(match['opponents'][0]['opponent']['name'])
-        team2 = parse_team_name(match['opponents'][1]['opponent']['name'])
-        date = str(match['scheduled_at'])
-        matches_to_predict.append([team1,team2,date])
-    matches_to_predict = pd.DataFrame(matches_to_predict,columns=['team1','team2','date'])
-    rankings = get_rankings()
-    X = matches_to_predict.merge(rankings,left_on='team1',right_on='name').merge(rankings,left_on='team2',right_on='name')
-    X = X.drop_duplicates()
-    X = compute_teams_fitness(X,team="team1")
-    X = compute_teams_fitness(X,team="team2")
-    X = compute_teams_antecedent(X)
-    X = X.drop(['team1','team2'],axis=1)
-    proba = clf.predict_proba(X[['ranking_x','elo_x','ranking_y','elo_y','F_S_team1','F_S_team2','A_S']])
-    pred = clf.predict(X[['ranking_x','elo_x','ranking_y','elo_y','F_S_team1','F_S_team2','A_S']])
-    X['winner'] = X['name_x'] * pred + X['name_y']*(1-pred) 
-    X['odd_x'] = 1/proba[:,1]
-    X['odd_y'] = 1/proba[:,0]
-    return X
-
-
-def aggregate_data(X,matches):
-    '''
-    Agrège les données du scrapping (avec côtes) et les features calculées indépendamment
-    '''
-    X.date = pd.to_datetime(X.date)
-    matches_to_predict= pd.DataFrame(list(map(lambda x:[x.odd1,x.odd2,parse_team_name(x.team1),parse_team_name(x.team2)
-                                                    ,x.date],matches)),
-                                columns = ['odd1','odd2','team1','team2','date'])
-    X['date_gross'] = list(map(lambda x: datetime.date(x.year,x.month,x.day),X['date']))
-    matches_to_predict['date_gross'] = list(map(lambda x: datetime.date(x.year,x.month,x.day),matches_to_predict['date']))
-    x_merged = matches_to_predict.merge(X,how='inner',
-                                     left_on=['team1','team2','date_gross'],
-                                     right_on=['team1','team2','date_gross']).sort_values('date_gross')
-    x_merged2 = matches_to_predict.merge(X,how='inner',
-                                     left_on=['team1','team2','date_gross'],
-                                     right_on=['team2','team1','date_gross']).sort_values('date_gross')
-    x_merged2['team1']=x_merged2.team1_y
-    x_merged2['team2']=x_merged2.team2_y
-    x_merged2 = x_merged2.drop(['team1_x','team2_x','team1_y','team2_y'],axis=1)
-    x = x_merged.drop(['team1','team2','date_gross','date_y','y'],axis=1)
-    y = x_merged['y']
-    print(x)
-    x.odd1 = x.odd1.astype(float)
-    x.odd2 = x.odd2.astype(float)
-    return x,y
-
-
-def aggregate_data_HLTV(X,matches):
-    '''
-    Agrège les données du scrapping (avec côtes) et les features calculées indépendamment
-    '''
-    X.date = pd.to_datetime(X.date)
-    matches_to_predict= pd.DataFrame(list(map(lambda x:[x.odd1,x.odd2,parse_team_name(x.team1),parse_team_name(x.team2)
-                                                    ,x.date,x.match_id],matches)),
-                                columns = ['odd1','odd2','team1','team2','date','match_id'])
-    X['date_gross'] = list(map(lambda x: datetime.date(x.year,x.month,x.day),X['date']))
-    X['date_gross'] = X['date_gross'] 
-    matches_to_predict['date_gross'] = list(map(lambda x: datetime.date(x.year,x.month,x.day),matches_to_predict['date']))
-    x_merged = matches_to_predict.merge(X,how='inner',
-                                     left_on=['team1','team2'],
-                                     right_on=['team1','team2']).drop_duplicates()
-    x_merged2 = matches_to_predict.merge(X,how='inner',
-                                     left_on=['team1','team2'],
-                                     right_on=['team2','team1']).drop_duplicates()
-    x_merged2['team1']=x_merged2.team1_y
-    x_merged2['team2']=x_merged2.team2_y
-    x_merged2 = x_merged2.drop(['team1_x','team2_x','team1_y','team2_y'],axis=1)
-    x = pd.concat([x_merged,x_merged2],axis=0)
-    x = x.drop(['team1','team2','date_y'],axis=1)
-    x.odd1 = x.odd1.astype(float)
-    x.odd2 = x.odd2.astype(float)
-    return x
-
-
-class TBDError(Exception):
-    pass
 
 
 class FeaturesBuilder:

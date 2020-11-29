@@ -7,20 +7,14 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 
 from .models import Match, Prediction, Bet
-from .module_api import get_matches_history
 from .module_data import parse_team_name, FeaturesBuilder
-
-
 
 import pytz
 import time
 import pandas as pd
-import json
+
 from datetime import datetime
 
-from decimal import Decimal
-from io import StringIO
-import numpy as np
 
 # clf = load('xgb.joblib')
 

@@ -27,8 +27,6 @@ class MatchPageScrapper():
         options.add_argument("--incognito")
         #.add_argument('--headless')
         #options.add_argument("--user-data-dir=selenium") 
-
-        #profile = FirefoxProfile("C:\\Users\\BOIGE\\AppData\\Roaming\\Mozilla\\Firefox\\Profiles\\ajwb9v9g.Robot")
         options.add_argument("start-maximized")
         options.add_argument("disable-infobars")
         options.add_argument("--disable-extensions")
