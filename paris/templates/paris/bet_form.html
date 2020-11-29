@@ -1,0 +1,35 @@
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<form method="post" action="{% url 'paris:bet' %}">{% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Save">
+</form>
+
+<!--
+<script>
+
+
+
+
+$('#id_match').change(function() {
+
+	var hello;
+	var match_id = $(this).val();
+
+
+	$.ajax({
+		url: ' url "paris:ajax_team_match_list" ',
+
+		data: {
+			'match' : match_id 
+		},
+
+		success: function (data) {
+			$('#id_winner').html(data);
+
+		}
+	});
+
+
+})
+	</script> -->

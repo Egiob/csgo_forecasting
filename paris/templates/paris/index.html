@@ -1,0 +1,123 @@
+{% extends "paris/base.html" %}
+
+
+
+{% block title %}
+CSGO auto-bettor
+{% endblock %}
+
+{% block matches %}
+<h3> Last update : {{last_update_match}} </h3>
+
+{% include "paris/upcoming.html" %}
+
+{% endblock %}
+
+{% block predictions %}
+
+<h3> Last update : {{last_update_pred}} </h3>
+
+<div class="btn-group btn-group-toggle d-flex mb-2" data-toggle="buttons">
+  <label class="btn btn-secondary active">
+    <input type="radio" name="options" id="evStrat" autocomplete="off" checked> EV strategy
+  </label>
+  <label class="btn btn-secondary">
+    <input type="radio" name="options" id="naiveStrat" autocomplete="off"> Naive Strategy
+  </label>
+
+</div>
+
+<div class = "bg-success container-fluid rounded">
+  <form method='post'>
+    {% csrf_token %}
+<label for="evRange">Expected value threshold</label>
+<input type="range" class="custom-range" id="evRange" min= "-0.2" max = "2" step = "0.1" value="0" 
+oninput="evOutput.value = evRange.value" >
+
+EV ≥ <output id ="evOutput" for ="evRange" >0</output>
+</form>
+</div>
+
+
+<br>
+<!--
+ <div class="btn-group btn-group-toggle d-flex mb-2" data-toggle="buttons">
+  <label class="btn btn-secondary active">
+    <input type="radio" name="options" id="1DayBet" autocomplete="off" checked> Today
+  </label>
+  <label class="btn btn-secondary">
+    <input type="radio" name="options" id="3DaysBet" autocomplete="off"> Past 3 days
+  </label>
+  <label class="btn btn-secondary">
+    <input type="radio" name="options" id="7DaysBet" autocomplete="off"> Past 7 days
+  </label>
+</div>
+
+-->
+<div id='betlist'>
+
+{% include "paris/bet_history2.html" %}
+ </div>
+
+
+{% endblock %}
+
+
+{% block script %}
+
+
+<script>
+  
+var ev= $('#evRange').val();
+var strategy = 'ev';
+var date='1';
+$('#betlist').load(`bet_history2/${ev}/${strategy}`);
+
+/*
+$('#1DayBet').click(function(){
+  date = '1';
+  console.log(date);
+  $('#betlist').load(`bet_history2/${ev}/${date}`);
+
+});
+
+
+$('#3DaysBet').click(function(){
+  date = '3';
+  console.log(date);
+  $('#betlist').load(`bet_history2/${ev}/${date}`);
+
+
+});
+
+$('#7DaysBet').click(function(){
+  date = '7';
+  console.log(date);
+  $('#betlist').load(`bet_history2/${ev}/${date}`);
+});
+
+
+*/
+
+$('#evRange').change(function(){
+
+ev = $(this).val();
+console.log(date);
+$('#betlist').load(`bet_history2/${ev}/${strategy}`);
+
+});
+
+$('#naiveStrat').click(function(){
+strategy = 'naive'
+$('#betlist').load(`bet_history2/${ev}/${strategy}`)
+})
+
+$('#evStrat').click(function(){
+strategy = 'ev'
+$('#betlist').load(`bet_history2/${ev}/${strategy}`)
+})
+
+
+</script>
+
+{% endblock %}

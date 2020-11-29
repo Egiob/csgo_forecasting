@@ -1,0 +1,30 @@
+
+
+
+<!DOCTYPE html>
+
+
+
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>My test page</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <link rel='stylesheet' href='{% static "paris/style.css" %}'>
+  </head>
+  <body>
+
+{% block content %}
+<div  class="lounge-bets-items__item sys-betting bet_coming" data-id="210320"> <a href="/fr/match/210320/" class="lounge-match"> <div class="lounge-match__header"> <div class="lounge-match__date"> <div class="lounge-match-date  "> <div class="lounge-match-date__date sys-time-fixed"> {{match.date}} </div>  <div class="lounge-match-date__timer sys-time-left" data-timestamp="1589273400">temps à calculer</div>   </div> </div> <div class="lounge-match__tournament sys-tourney-name"> Tournoi </div> </div> <div class="lounge-match__body"> <div class="lounge-match__teams-bo"> <div class="lounge-match__team lounge-match__team_left"> <div class="lounge-team lounge-team_left sys-team-left   lounge-team_EUR "> <div class="lounge-team__info"> <div class="lounge-team__title sys-t1name"> {{match.team1}} </div> <div class="lounge-team__coeff-sum"> <div class="lounge-team__coeff sys-stat-koef-1">x{{match.odd1}}</div> <div class="lounge-team__sum"> <div ></div> </div> </div> </div> <div class="lounge-team__logo"> <img src="{{match.logo1}}" alt="{{match.team1}}" class="sys-t1logo"> </div> </div> </div> <div class="lounge-match__bo sys-bo">  {{match.bo}}  </div> <div class="lounge-match__team lounge-match__team_right"> <div class="lounge-team lounge-team_right sys-team-right   lounge-team_EUR "> <div class="lounge-team__info"> <div class="lounge-team__title sys-t2name"> {{match.team2}}</div> <div class="lounge-team__coeff-sum"> <div class="lounge-team__coeff sys-stat-koef-2">x{{match.odd2}}</div> <div class="lounge-team__sum"> <div></div> </div> </div> </div> <div class="lounge-team__logo"> <img src="{{match.logo2}}" alt="{{match.team2}}" class="sys-t2logo"> </div> </div> </div> </div> <div class="lounge-match__tournament-img sys-tourney-pic" style="background-image: url('https://csgolounge.com/images/leagues/go/2030_1586056352.png')"></div> </div> </a> </div>
+{% endblock %}
+
+
+
+
+
+  </body>
+</html>
+
+

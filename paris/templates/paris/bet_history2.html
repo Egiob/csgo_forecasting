@@ -1,0 +1,46 @@
+{% if bets %}
+
+
+{% if total >= 0 %}
+<h2 class = 'text-success'> 
+
+{% else %}
+<h2 class = 'text-danger'> 
+
+{% endif %}
+Gain = {{total}} </h2>
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+
+      <th scope="col">Date</th>
+      <th scope="col">Gain</th>
+
+
+    </tr>
+  </thead>
+  <tbody>
+{% for date,total in totals.items%}
+
+
+
+
+      <td>{{date|date:"d M"}}</td>
+      {% if total >= 0 %}
+      <td class='text-success'>
+        {% else %}
+              <td class='text-danger'>
+            {% endif %}
+      {{total}}</td>
+    </tr>
+{% endfor %}
+  </tbody>
+</table> 
+
+
+
+{% else %}
+    <p>No bet are available.</p>
+{% endif %}
+

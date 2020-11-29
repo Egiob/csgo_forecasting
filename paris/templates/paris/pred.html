@@ -1,0 +1,34 @@
+{% if pred_list %}
+
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th scope="col">Team 1</th>
+      <th scope="col">Odd 1</th>
+      <th scope="col">Odd 1 predicted</th>
+      <th scope="col">Team 2</th>
+      <th scope="col">Odd 2</th>
+      <th scope="col">Odd 2 predicted</th>
+      <th scope="col">ΔEV1</th>
+      <th scope="col">ΔEV2</th>
+  </tr>
+</thead>
+   <tbody>
+   	{% for pred in pred_list %}
+    <tr>
+
+      <td>{{pred.match.team1}}</td>
+      <td>{{pred.match.odd1}}</td>
+      <td>{{pred.odd1}}</td>
+      <td>{{pred.match.team2}}</td>
+      <td>{{pred.match.odd2}}</td>
+      <td>{{pred.odd2}}</td>
+      <td>{{pred.delta_ev_1}} </td>
+      <td>{{pred.delta_ev_2}} </td>
+  </tr>
+
+    {% endfor %}
+</tbody>
+{% else %}
+    <p>No predictions are available.</p>
+{% endif %}

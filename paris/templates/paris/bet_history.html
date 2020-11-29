@@ -1,0 +1,76 @@
+{% if bets %}
+
+{% if total >= 0 %}
+<h2 class = 'text-success'> 
+
+{% else %}
+<h2 class = 'text-danger'> 
+
+{% endif %}
+
+Gain = {{total}} </h2>
+
+ 
+<table class="table table-striped">
+  <thead>
+    <tr>
+
+      <th scope="col">Team 1</th>
+      <th scope="col">Odd 1</th>
+      <th scope="col">Team 2</th>
+      <th scope="col">Odd 2</th>
+      <th scope="col">Amount</th>
+      <th score="col">EV</th> 
+      <th scope="col">Bet</th>
+
+      <th scope="col">Results</th>
+      <th score="col">Status</th>
+      <th score="col">Gain</th>
+
+    </tr>
+  </thead>
+  <tbody>
+    {% for bet in bets %}
+    {% if bet.winner == bet.match.winner %}
+    <tr class = 'bg-success'>
+    {% elif bet.status == 'Pending' %}
+        <tr class = 'bg-warning'>
+    {% else %}
+    <tr class = 'bg-danger'>
+    {% endif %}
+
+      <td>{{bet.match.team1}}</td>
+      <td>{{bet.match.odd1}}</td>
+      <td>{{bet.match.team2}}</td>
+      <td>{{bet.match.odd2}}</td>
+      <td>{{bet.amount}}€</td>
+      <td>{% if bet.winner == 'Team 1' %}
+       {{ bet.match.prediction.delta_ev_1}}
+       {% else %}
+       {{bet.match.prediction.delta_ev_2}}
+       {% endif %}
+      </td>
+      {% if bet.winner == 'Team 1' %}
+      <td>{{bet.match.team1}}</td>
+      {% elif bet.winner == 'Team 2' %}
+      <td>{{bet.match.team2}}</td>
+      {% endif %}
+      {% if bet.match.winner == 'Team 1' %}
+      <td>{{bet.match.team1}}</td>
+      {% elif bet.match.winner == 'Team 2' %}
+      <td>{{bet.match.team2}}</td>
+      {% else %}
+      <td></td>
+      {% endif %}
+      <td>{{bet.status}}</td>
+      <td>{{bet.gain}}</td>
+    </tr>
+{% endfor %}
+  </tbody>
+</table> 
+
+
+{% else %}
+    <p>No bet are available.</p>
+{% endif %}
+
