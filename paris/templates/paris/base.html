@@ -24,7 +24,6 @@
 
 
 
-<button id='populate' > Load new matches </button>
 
 <div class = "d-flex flex-row justify-content-around " >
 <div id='matchlist'>
@@ -43,34 +42,6 @@
 
 {% block script %}
 <script >   
-
-  $("#populate").click(function () {
-
-  $.ajax({
-        url: '{% url "paris:populate" %}',
-        data: {
-        },
-        dataType: 'json',
-        success: function (data) {
-        
-        if ($('#upcoming').get(0).classList.contains('active')){
-          $("#matchlist").load('{% url "paris:upcoming" %}');
-          $("#betform").load('{% url "paris:bet" %}');
-          $("#predlist").load('{% url "paris:pred" %}');
-
-
-
-        }
-        else{
-          $("#matchlist").load('{% url "paris:history" %}');
-          $("#betform").load('{% url "paris:bet_history" %}');
-          ;
-        }
-
-        }
-      });
-
-    });
 
   $("#history").click(function (){
     
