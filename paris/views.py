@@ -22,12 +22,6 @@ class IndexView(generic.TemplateView):
         context['matches'] = Match.objects.filter(MATCH_NOT_FINISHED).order_by('date')
         context['bets'] = Bet.objects.order_by('-match__date')
         context['total'] = np.array(list(map(lambda x: x.gain,Bet.objects.filter(status='Finished')))).sum()
-        with open(DATA_DIR+'model_update_history','r') as f:
-            lines = f.readlines()
-            context['last_update_pred'] = lines[-1]
-        with open(DATA_DIR+'match_update_history','r') as f:
-            lines = f.readlines()
-            context['last_update_match'] = lines[-1]
         return context
 
 
