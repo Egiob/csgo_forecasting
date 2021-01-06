@@ -22,3 +22,7 @@ If you have any questions feel free to contact me !
  ```
  
  - Make sure you have a good version of chromedriver in your PATH (see : [chromedriver](https://chromedriver.chromium.org/))
+ - When you run migrations for the first time use:
+ ```python
+ python manage.py migrate --run-syncdb
+ ``
