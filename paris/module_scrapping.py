@@ -1,12 +1,5 @@
 import pandas as pd
-from urllib.request import urlopen, Request
-import json
-import numpy as np
-import sqlite3
-import datetime
-from bs4 import BeautifulSoup
-import re
-import time
+from datetime import datetime
 import pytz
 from .module_data import parse_team_name
 
@@ -54,7 +47,7 @@ class MatchPageScrapper():
         if self.is_already_scrapped(url.split('/')[-2]):
             return None, []
         elif not self.is_page_empty():
-            matches_data = pd.DataFrame(columns= ["team1",'team2','odd1','odd2','logo1','logo2','bo','date','match_id'])
+            #matches_data = pd.DataFrame(columns= ["team1",'team2','odd1','odd2','logo1','logo2','bo','date','match_id'])
             date = self.driver.find_elements_by_class_name('lounge-match-date__date')[0].get_attribute("innerHTML")
             date = datetime.strptime(date.replace(" ","")[:-3],"%d.%m.%Y,%H:%M")  
             date = pytz.timezone("Europe/Paris").localize(date, is_dst=None) 
