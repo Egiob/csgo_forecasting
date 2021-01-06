@@ -20,3 +20,5 @@ If you have any questions feel free to contact me !
  ```
  git config --global core.symlinks true
  ```
+ 
+ - Make sure you have a good version of chromedriver in your PATH (see : [chromedriver](https://chromedriver.chromium.org/))
