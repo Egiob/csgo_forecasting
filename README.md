@@ -25,4 +25,4 @@ If you have any questions feel free to contact me !
  - When you run migrations for the first time use:
  ```python
  python manage.py migrate --run-syncdb
- ``
+ ```
