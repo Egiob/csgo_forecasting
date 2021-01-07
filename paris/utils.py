@@ -68,6 +68,8 @@ class AutoBettor():
         options.add_experimental_option('useAutomationExtension', False)
         options.add_argument("--disable-blink-features=AutomationControlled")
         options.add_argument("--remote-debugging-port=9222")
+        options.add_argument("--no-sandbox")
+        options.add_argument("--disable-dev-shm-usage")
         self.driver = webdriver.Chrome(options = options)
         self.driver.get('https://csgolounge.com/fr/')
         self.FB = FeaturesBuilder()
