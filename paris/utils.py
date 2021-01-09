@@ -275,11 +275,11 @@ class AutoBettor():
     def predict(self, features):
         probas = self.clf.predict_proba(features.drop('match_id', axis=1))
         eps = 1e-8
-        features['odd_p_1'] = 1/(probas[:, 0] + eps)
-        features['odd_p_2'] = 1/(probas[:, 1] + eps)
+        features['odd_p_1'] = 1/(probas[:, 1] + eps)
+        features['odd_p_2'] = 1/(probas[:, 0] + eps)
         return features
 
-    def auto_bet(self,amount='0.5'):
+    def auto_bet(self, amount='0.5'):
         i = 1
         while 1:
             now = datetime.now()
@@ -288,13 +288,15 @@ class AutoBettor():
                 matches_data = self.scrap_upcoming_matches()
                 for i in range(matches_data.shape[0]):
                     match = matches_data.iloc[i]
-                    team1,team2,odd1,odd2,logo1,logo2,bo,status,winner,date,match_id=match
-                    Match(team1=team1,team2=team2,odd1=odd1,odd2=odd2,
-                          logo1=logo1,logo2=logo2,
+                    (team1, team2, odd1, odd2,
+                     logo1, logo2, bo, status,
+                     winner, date, match_id) = match
+                    Match(team1=team1, team2=team2, odd1=odd1, odd2=odd2,
+                          logo1=logo1, logo2=logo2,
                           status=status, winner=winner,
-                          bo=bo,date=date,match_id=match_id).save()
+                          bo=bo, date=date, match_id=match_id).save()
                 print('Upcoming matches : ')
-                print(matches_data.iloc[:10])
+                print(matches_data.iloc[:10, :4])
             except IndexError:
                 print("Can't scrap matches")
             # m = 5
