@@ -1,7 +1,7 @@
 import pandas as pd
 from urllib.request import urlopen
 import json
-from .module_data import add_to_history
+from . import module_data
 from io import StringIO
 
 
@@ -32,8 +32,7 @@ def get_matches_history(token,page_number=100):
     return response
 
 
-
 def update_history(token):
     matches_json = get_matches_history(token)
     matches = pd.read_json(StringIO(json.dumps(matches_json)))
-    add_to_history(matches)
+    module_data.add_to_history(matches)

@@ -3,6 +3,7 @@ import numpy as np
 import sqlite3
 import datetime
 import pytz
+from . import module_api
 
 DATA_DIR = './var/'
 
@@ -27,7 +28,7 @@ def add_to_history(matches, verbose=0):
                 row[4] = parse_team_name(match['winner']['name'])
 
             except Exception:
-                print(match['winner'])
+                #print(match['winner'])
                 row[4] = None
             finally:
                 with sqlite3.connect(DATA_DIR + 'history.db') as conn:
@@ -99,7 +100,10 @@ def parse_team_name(el):
 
 class FeaturesBuilder:
 
-    def __init__(self, recompute_ranking=False, recompute_elo=False):
+    def __init__(self, update_history=False, token=None,
+                 recompute_ranking=False, recompute_elo=False):
+        if update_history:
+            module_api.update_history(token)
         self.history = get_history().drop_duplicates()
         self.history = self.history[~self.history['winner'].isnull()]
         self.history.date = pd.to_datetime(self.history.date, utc=True)
@@ -132,8 +136,8 @@ class FeaturesBuilder:
         t0 = history.date.min()
         now = datetime.datetime.now(tz=pytz.utc)
         weeks = (now-t0).days // 7
-        dates = [pd.to_datetime(t0) +
-                 datetime.timedelta(days=i*7) for i in range(weeks)]
+        dates = ([pd.to_datetime(t0) +
+                 datetime.timedelta(days=i*7) for i in range(weeks)])
         teams = pd.Series(pd.concat((history.team1,
                                      history.team2), axis=0).unique())
         elo = pd.Series(np.ones(len(teams))*1400)
