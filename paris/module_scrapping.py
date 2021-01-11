@@ -93,7 +93,7 @@ class MatchPageScrapper():
                 return None,[]
 
         else: 
-            date = datetime.datetime.now(pytz.utc)
+            date = datetime.now(pytz.utc)
             status = 'Empty'
             match_id = self.driver.current_url.split('/')[-2]
             row = pd.DataFrame([['','',0,0,
@@ -103,7 +103,7 @@ class MatchPageScrapper():
             team1,team2,odd1,odd2,logo1,logo2,bo,status,winner,date,match_id=row.iloc[0]
             Match(team1=team1,team2=team2,odd1=odd1,odd2=odd2,logo1=logo1,logo2=logo2,status=status,winner=winner,bo=bo,date=date,match_id=match_id).save()
             self.already_visited.append(match_id)
-            return row,[]
+            return row, []
 
     def recursive_scrap(self,urls):
         if len(urls) == 0:

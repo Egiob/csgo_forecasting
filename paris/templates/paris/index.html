@@ -26,12 +26,12 @@ CSGO auto-bettor
 
 </div>
 
-<div class = "bg-success container-fluid rounded">
+<div class = "bg-success container-fluid rounded" style = "display: none;">
   <form method='post'>
     {% csrf_token %}
 <label for="evRange">Expected value threshold</label>
 <input type="range" class="custom-range" id="evRange" min= "-0.2" max = "2" step = "0.1" value="0" 
-oninput="evOutput.value = evRange.value" >
+oninput="evOutput.value = evRange.value">
 
 EV ≥ <output id ="evOutput" for ="evRange" >0</output>
 </form>
@@ -67,7 +67,8 @@ EV ≥ <output id ="evOutput" for ="evRange" >0</output>
 
 <script>
   
-var ev= $('#evRange').val();
+/*var ev= $('#evRange').val();*/
+var ev = 0;
 var strategy = 'ev';
 var date='1';
 $('#betlist').load(`bet_history2/${ev}/${strategy}`);

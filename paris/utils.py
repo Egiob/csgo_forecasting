@@ -31,7 +31,7 @@ def decision(prediction, strategy):
         ev2 = prediction.delta_ev_2
         if ev1 > ev2 and ev1 > 0:
             decision = 1
-        elif ev2 > ev1  and ev2 > 0:
+        elif ev2 > ev1 and ev2 > 0:
             decision = 0
         else:
             decision = -1
@@ -70,12 +70,12 @@ class AutoBettor():
         options.add_argument("--remote-debugging-port=9222")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
-        self.driver = webdriver.Chrome(options = options)
+        self.driver = webdriver.Chrome(options=options)
         self.driver.get('https://csgolounge.com/fr/')
         self.FB = FeaturesBuilder()
         self.clf = clf
 
-    def auto_predict(self,fast=False):
+    def auto_predict(self, fast=False):
         """
         Place bets using decision rules based on different strategies
         """
@@ -91,7 +91,7 @@ class AutoBettor():
             decision_ev = decision(pred, 'EV')
 
             if decision_ev == 1:
-                bet, created = Bet.objects.get_or_create(match=pred.match,strategy='EV')
+                bet, created = Bet.objects.get_or_create(match=pred.match, strategy='EV')
                 bet.winner = 'Team 1'
                 if not bet.real:
                     bet.amount = 1
@@ -101,7 +101,7 @@ class AutoBettor():
                       "new"*created + "not new" * (1-created),
                       f"with strategy : {bet.strategy}")
             elif decision_ev == 0:
-                bet, created = Bet.objects.get_or_create(match=pred.match,strategy='EV')
+                bet, created = Bet.objects.get_or_create(match=pred.match, strategy='EV')
                 bet.winner = 'Team 2'
                 if not bet.real:
                     bet.amount = 1
