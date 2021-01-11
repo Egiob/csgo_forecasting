@@ -73,7 +73,7 @@ class BetHistory2(generic.ListView):
                 totals.append(np.array(list(map(lambda x: x.gain, bets))).sum())
             context['totals'] = dict(zip(dates, totals))
 
-        else:
+        elif strategy == 'naive':
             n = 200
             dates = [timezone.now()-timezone.timedelta(days=i)
                      for i in range(n)]
@@ -84,6 +84,21 @@ class BetHistory2(generic.ListView):
                 bets = Bet.objects.filter(match__date__lte=date_sup,
                                           match__date__gte=date_inf,
                                           strategy='Naive').order_by('-match__date')
+                totals.append(np.array(list(map(lambda x: x.gain,
+                                                bets))).sum())
+            context['totals'] = dict(zip(dates, totals))
+
+        elif strategy == 'kelly':
+            n = 200
+            dates = [timezone.now()-timezone.timedelta(days=i)
+                     for i in range(n)]
+            totals = []
+            for i in range(n-1):
+                date_sup = timezone.now()-timezone.timedelta(days=i)
+                date_inf = timezone.now()-timezone.timedelta(days=i+1)
+                bets = Bet.objects.filter(match__date__lte=date_sup,
+                                          match__date__gte=date_inf,
+                                          strategy='Kelly').order_by('-match__date')
                 totals.append(np.array(list(map(lambda x: x.gain,
                                                 bets))).sum())
             context['totals'] = dict(zip(dates, totals))
@@ -100,8 +115,13 @@ class BetHistory2(generic.ListView):
                             Q(match__prediction__delta_ev_2__gte=ev))
                     .order_by('-match__date'))
             return bets
-        else:
+
+        elif strategy == 'naive':
             bets = Bet.objects.filter(strategy='Naive').order_by('-match__date')
+            return bets
+
+        elif strategy == 'kelly':
+            bets = Bet.objects.filter(strategy='Kelly').order_by('-match__date')
             return bets
 
 

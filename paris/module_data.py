@@ -103,6 +103,9 @@ class FeaturesBuilder:
     def __init__(self, update_history=False, token=None,
                  recompute_ranking=False, recompute_elo=False):
         if update_history:
+            if not token:
+                print("Pls specify a token if you want the history to be updated")
+                return None
             module_api.update_history(token)
         self.history = get_history().drop_duplicates()
         self.history = self.history[~self.history['winner'].isnull()]
@@ -125,7 +128,7 @@ class FeaturesBuilder:
                                                    utc=True)
 
     # Module elo computing
-    def find_date(self, date): 
+    def find_date(self, date):
         dates = self.ranking.index
         before = np.where(dates <= date)
         if len(before) > 0:

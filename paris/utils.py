@@ -26,7 +26,7 @@ DATA_DIR = 'var/'
 
 def decision(prediction, strategy):
 
-    if strategy == 'EV':
+    if strategy == 'EV' or strategy == 'Kelly':
         ev1 = prediction.delta_ev_1
         ev2 = prediction.delta_ev_2
         if ev1 > ev2 and ev1 > 0:
@@ -113,9 +113,36 @@ class AutoBettor():
             elif decision_ev == -1:
                 print(f'Not a good bet {pred.match}')
 
+            if decision_ev == 1:
+                bet, created = Bet.objects.get_or_create(match=pred.match,
+                                                         strategy='Kelly')
+                bet.winner = 'Team 1'
+                if not bet.real:
+                    bet.amount = 50 * pred.delta_ev_1 / pred.match.odd1
+
+                bet.save()
+                pred.save()
+                print(bet,
+                      "new"*created + "not new" * (1-created),
+                      f"with strategy : {bet.strategy}")
+            elif decision_ev == 0:
+                bet, created = Bet.objects.get_or_create(match=pred.match,
+                                                         strategy='Kelly')
+                bet.winner = 'Team 2'
+                if not bet.real:
+                    bet.amount = 50 * pred.delta_ev_2 / pred.match.odd2
+                bet.save()
+                pred.save()
+                print(bet,
+                      "new"*created + "not new" * (1-created),
+                      f"with strategy : {bet.strategy}")
+            elif decision_ev == -1:
+                print(f'Not a good bet {pred.match}')
+
             decision_naive = decision(pred, 'Naive')
             if decision_naive == 1:
-                bet, created = Bet.objects.get_or_create(match=pred.match, strategy='Naive')
+                bet, created = Bet.objects.get_or_create(match=pred.match,
+                                                         strategy='Naive')
                 bet.winner = 'Team 1'
                 if not bet.real:
                     bet.amount = 1
@@ -125,7 +152,8 @@ class AutoBettor():
                       f"with strategy : {bet.strategy}")
 
             elif decision_naive == 0:
-                bet, created = Bet.objects.get_or_create(match=pred.match,strategy='Naive')
+                bet, created = Bet.objects.get_or_create(match=pred.match,
+                                                         strategy='Naive')
                 bet.winner = 'Team 2'
                 if not bet.real:
                     bet.amount = 1
@@ -283,7 +311,9 @@ class AutoBettor():
         i = 1
         while 1:
             now = datetime.now()
-            print(f'Starting iteration {i} at {now.hour}h{now.minute}')
+            if len(now.minute) < 2:
+                minutes = "0" + str(now.minute)
+            print(f'Starting iteration {i} at {now.hour}h{minutes}')
             try:
                 matches_data = self.scrap_upcoming_matches()
                 for i in range(matches_data.shape[0]):
@@ -313,5 +343,6 @@ class AutoBettor():
             self.auto_predict()
             print('Sleeping for 30s')
             for j in range(30):
-                print('#'*j + ' ' + str((j*100)//30) +'%')
+                #print('#'*j + ' ' + str((j*100)//30) +'%')
                 time.sleep(1)
+            print("##################")

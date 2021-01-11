@@ -23,6 +23,9 @@ CSGO auto-bettor
   <label class="btn btn-secondary">
     <input type="radio" name="options" id="naiveStrat" autocomplete="off"> Naive Strategy
   </label>
+  <label class="btn btn-secondary">
+    <input type="radio" name="options" id="kellyStrat" autocomplete="off"> Kelly Strategy
+  </label>
 
 </div>
 
@@ -114,6 +117,11 @@ $('#betlist').load(`bet_history2/${ev}/${strategy}`)
 
 $('#evStrat').click(function(){
 strategy = 'ev'
+$('#betlist').load(`bet_history2/${ev}/${strategy}`)
+})
+
+$('#kellyStrat').click(function(){
+strategy = 'kelly'
 $('#betlist').load(`bet_history2/${ev}/${strategy}`)
 })
 

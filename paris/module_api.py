@@ -18,7 +18,7 @@ def get_teams(token):
         response += json.load(request)
     return response
 
-def get_matches_history(token,page_number=100):
+def get_matches_history(token,page_number=300):
     """
     Calls PandasScore API following endpoints : /csgo/matches
     return the response as a jsons
