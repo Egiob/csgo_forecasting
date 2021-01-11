@@ -118,19 +118,24 @@ class AutoBettor():
                                                          strategy='Kelly')
                 bet.winner = 'Team 1'
                 if not bet.real:
-                    bet.amount = 50 * pred.delta_ev_1 / pred.match.odd1
+                    f = pred.delta_ev_1 / pred.match.odd1
+                    bet.amount = 50 * f
+                    print(f)
 
                 bet.save()
                 pred.save()
                 print(bet,
                       "new"*created + "not new" * (1-created),
                       f"with strategy : {bet.strategy}")
+
             elif decision_ev == 0:
                 bet, created = Bet.objects.get_or_create(match=pred.match,
                                                          strategy='Kelly')
                 bet.winner = 'Team 2'
                 if not bet.real:
-                    bet.amount = 50 * pred.delta_ev_2 / pred.match.odd2
+                    f = pred.delta_ev_2 / pred.match.odd2
+                    bet.amount = 50 * f
+                    print(f)
                 bet.save()
                 pred.save()
                 print(bet,
@@ -311,8 +316,9 @@ class AutoBettor():
         i = 1
         while 1:
             now = datetime.now()
-            if len(now.minute) < 2:
-                minutes = "0" + str(now.minute)
+            minutes = str(now.minute)
+            if len(minutes) < 2:
+                minutes = "0" + minutes
             print(f'Starting iteration {i} at {now.hour}h{minutes}')
             try:
                 matches_data = self.scrap_upcoming_matches()

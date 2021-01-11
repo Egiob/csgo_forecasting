@@ -80,6 +80,6 @@ class Bet(models.Model):
     bet_id = models.AutoField(primary_key=True)
 
     def __str__(self):
-        return "%d €  on %s" % (self.amount,
+        return "%0.2f €  on %s" % (self.amount,
                                 self.match.team1 * (self.winner == 'Team 1')
                                 + self.match.team2 * (self.winner == 'Team 2'))
