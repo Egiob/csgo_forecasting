@@ -111,7 +111,16 @@ class AutoBettor():
                       "new"*created + "not new" * (1-created),
                       f"with strategy : {bet.strategy}")
             elif decision_ev == -1:
+                bet, created = Bet.objects.get_or_create(match=pred.match,
+                                                         strategy='EV')
+                bet.winner = 'None'
+                bet.amount = 0
+                bet.save()
+                pred.save()
                 print(f'Not a good bet {pred.match}')
+                print(bet,
+                      "new"*created + "not new" * (1-created),
+                      f"with strategy : {bet.strategy}")
 
             if decision_ev == 1:
                 bet, created = Bet.objects.get_or_create(match=pred.match,
@@ -120,7 +129,6 @@ class AutoBettor():
                 if not bet.real:
                     f = pred.delta_ev_1 / pred.match.odd1
                     bet.amount = 50 * f
-                    print(f)
 
                 bet.save()
                 pred.save()
@@ -135,14 +143,22 @@ class AutoBettor():
                 if not bet.real:
                     f = pred.delta_ev_2 / pred.match.odd2
                     bet.amount = 50 * f
-                    print(f)
                 bet.save()
                 pred.save()
                 print(bet,
                       "new"*created + "not new" * (1-created),
                       f"with strategy : {bet.strategy}")
             elif decision_ev == -1:
+                bet, created = Bet.objects.get_or_create(match=pred.match,
+                                                         strategy='Kelly')
+                bet.winner = 'None'
+                bet.amount = 0
+                bet.save()
+                pred.save()
                 print(f'Not a good bet {pred.match}')
+                print(bet,
+                      "new"*created + "not new" * (1-created),
+                      f"with strategy : {bet.strategy}")
 
             decision_naive = decision(pred, 'Naive')
             if decision_naive == 1:
@@ -246,7 +262,7 @@ class AutoBettor():
                       bo=bo,date=date,match_id=match_id).save()
 
         twelve_hours_ago = timezone.now() - timezone.timedelta(hours=12)
-        Match.objects.filter(Q(date__lte = twelve_hours_ago) & (Q(status = "Scheduled")|Q(status="Live")) ).update(status='Expired')
+        Match.objects.filter(Q(date__lte = twelve_hours_ago) & (Q(status = "Scheduled")|Q(status="Live"))).update(status='Expired')
 
 
     def scrap_upcoming_matches(self):
@@ -313,13 +329,14 @@ class AutoBettor():
         return features
 
     def auto_bet(self, amount='0.5'):
-        i = 1
+        k = 0
         while 1:
+            k += 1
             now = datetime.now()
             minutes = str(now.minute)
             if len(minutes) < 2:
                 minutes = "0" + minutes
-            print(f'Starting iteration {i} at {now.hour}h{minutes}')
+            print(f'Starting iteration {k} at {now.hour}h{minutes}')
             try:
                 matches_data = self.scrap_upcoming_matches()
                 for i in range(matches_data.shape[0]):

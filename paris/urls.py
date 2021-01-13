@@ -13,4 +13,6 @@ urlpatterns = [
          views.BetHistory2.as_view(),
          name='bet_history2'),
     path('pred', views.PredictionView.as_view(), name='pred'),
+    path('day/<str:date>/<str:strat>', views.DayView.as_view(), name='day')
+    
 ]

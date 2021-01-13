@@ -3,7 +3,8 @@ from django.urls import reverse_lazy
 from django.views import generic
 from django.db.models import Q
 from django.utils import timezone
-
+from datetime import datetime, date, timedelta
+import pytz
 from .utils import compute_time_to_go
 from .forms import BetForm
 from .models import Match, Bet, Prediction
@@ -41,6 +42,42 @@ class UpcomingView(generic.ListView):
         return matches
 
 
+class DayView(generic.ListView):
+    template_name = 'paris/day.html'
+    context_object_name = 'matches'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        strategy = self.kwargs['strat']
+        date = self.kwargs['date']
+        date = datetime.strptime(date, "%d.%m.%Y")
+        date = pytz.timezone("Europe/Paris").localize(date, is_dst=None)
+        date_next_day = date + timedelta(days=1)
+        IN_DAY = Q(date__gte=date, date__lt=date_next_day)
+        matches = Match.objects.filter(IN_DAY).order_by('-date')
+        if strategy == 'ev':
+            bets = Bet.objects.filter(match__in=matches,
+                                      strategy='EV').order_by('-match__date')
+        elif strategy == 'kelly':
+            bets = Bet.objects.filter(match__in=matches,
+                                      strategy='Kelly').order_by('-match__date')
+        elif strategy == 'naive':
+            bets = Bet.objects.filter(match__in=matches,
+                                      strategy='Naive').order_by('-match__date')
+        context['mbs'] = zip(matches, bets)
+        return context
+
+    def get_queryset(self):
+        date = self.kwargs['date']
+        date = datetime.strptime(date, "%d.%m.%Y")
+        date = pytz.timezone("Europe/Paris").localize(date, is_dst=None)
+        date_next_day = date + timedelta(days=1)
+        IN_DAY = Q(date__gte=date, date__lt=date_next_day)
+        matches = Match.objects.filter(IN_DAY).order_by('-date')
+        compute_time_to_go(matches)
+        return matches
+
+
 class BetView(generic.CreateView):
     template_name = 'paris/bet_form.html'
     model = Bet
@@ -55,53 +92,32 @@ class BetHistory2(generic.ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         strategy = self.kwargs['strat']
+        context['strategy'] = strategy
+        ev = self.kwargs['ev']
         if strategy == 'ev':
-            ev = self.kwargs['ev']
-            n = 200
-            dates = [timezone.now()-timezone.timedelta(days=i)
-                     for i in range(n)]
-            totals = []
-            for i in range(n-1):
-                date_sup = timezone.now()-timezone.timedelta(days=i)
-                date_inf = timezone.now()-timezone.timedelta(days=i+1)
-                bets = Bet.objects.filter(strategy='EV')
-                bets = (bets.filter(Q(match__prediction__delta_ev_1__gte=ev) |
-                                    Q(match__prediction__delta_ev_2__gte=ev))
-                            .filter(match__date__lte=date_sup,
-                                    match__date__gte=date_inf)
-                            .order_by('-match__date'))
-                totals.append(np.array(list(map(lambda x: x.gain, bets))).sum())
-            context['totals'] = dict(zip(dates, totals))
+            bets = Bet.objects.filter(strategy='EV')
 
         elif strategy == 'naive':
-            n = 200
-            dates = [timezone.now()-timezone.timedelta(days=i)
-                     for i in range(n)]
-            totals = []
-            for i in range(n-1):
-                date_sup = timezone.now()-timezone.timedelta(days=i)
-                date_inf = timezone.now()-timezone.timedelta(days=i+1)
-                bets = Bet.objects.filter(match__date__lte=date_sup,
-                                          match__date__gte=date_inf,
-                                          strategy='Naive').order_by('-match__date')
-                totals.append(np.array(list(map(lambda x: x.gain,
-                                                bets))).sum())
-            context['totals'] = dict(zip(dates, totals))
+            bets = Bet.objects.filter(strategy='Naive')
 
         elif strategy == 'kelly':
-            n = 200
-            dates = [timezone.now()-timezone.timedelta(days=i)
-                     for i in range(n)]
-            totals = []
-            for i in range(n-1):
-                date_sup = timezone.now()-timezone.timedelta(days=i)
-                date_inf = timezone.now()-timezone.timedelta(days=i+1)
-                bets = Bet.objects.filter(match__date__lte=date_sup,
-                                          match__date__gte=date_inf,
-                                          strategy='Kelly').order_by('-match__date')
-                totals.append(np.array(list(map(lambda x: x.gain,
-                                                bets))).sum())
-            context['totals'] = dict(zip(dates, totals))
+            bets = Bet.objects.filter(strategy='Kelly')
+
+        n = 20
+        date_0 = timezone.now().replace(second=0, minute=0,
+                                        hour=0, microsecond=0)
+        dates = [date_0-timezone.timedelta(days=i)
+                 for i in range(n)]
+        totals = []
+        for i in range(n-1):     
+            date_next_day = dates[i] + timedelta(days=1)
+            bets_today = (bets.filter(Q(match__prediction__delta_ev_1__gte=ev) |
+                                      Q(match__prediction__delta_ev_2__gte=ev))
+                              .filter(match__date__lt=date_next_day,
+                                      match__date__gte=dates[i])
+                              .order_by('-match__date'))
+            totals.append(np.array(list(map(lambda x: x.gain, bets_today))).sum())
+        context['totals'] = dict(zip(dates, totals))
         context['total'] = np.array(totals, dtype=np.float).sum()
         return context
 
