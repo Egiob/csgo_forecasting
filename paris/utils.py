@@ -52,10 +52,10 @@ def compute_time_to_go(matches):
         delta_t = match.date - timezone.now()
         match.time_to_go = ""
         if delta_t.days > 0:
-            match.time_to_go += str(int(delta_t.days)) +'d '
+            match.time_to_go += str(int(delta_t.days)) + 'd '
         if delta_t.seconds//3600 > 0:
-            match.time_to_go += str((delta_t.seconds//3600)) +'h '
-        match.time_to_go += str((delta_t.seconds//60)%60) +'m '
+            match.time_to_go += str((delta_t.seconds//3600)) + 'h '
+        match.time_to_go += str((delta_t.seconds//60) % 60) + 'm '
 
 
 class AutoBettor():
@@ -93,8 +93,7 @@ class AutoBettor():
             if decision_ev == 1:
                 bet, created = Bet.objects.get_or_create(match=pred.match, strategy='EV')
                 bet.winner = 'Team 1'
-                if not bet.real:
-                    bet.amount = 1
+                bet.amount = 1
                 bet.save()
                 pred.save()
                 print(bet,
@@ -103,8 +102,7 @@ class AutoBettor():
             elif decision_ev == 0:
                 bet, created = Bet.objects.get_or_create(match=pred.match, strategy='EV')
                 bet.winner = 'Team 2'
-                if not bet.real:
-                    bet.amount = 1
+                bet.amount = 1
                 bet.save()
                 pred.save()
                 print(bet,
@@ -126,9 +124,8 @@ class AutoBettor():
                 bet, created = Bet.objects.get_or_create(match=pred.match,
                                                          strategy='Kelly')
                 bet.winner = 'Team 1'
-                if not bet.real:
-                    f = pred.delta_ev_1 / pred.match.odd1
-                    bet.amount = 50 * f
+                f = pred.delta_ev_1 / pred.match.odd1
+                bet.amount = 50 * f
 
                 bet.save()
                 pred.save()
@@ -140,9 +137,8 @@ class AutoBettor():
                 bet, created = Bet.objects.get_or_create(match=pred.match,
                                                          strategy='Kelly')
                 bet.winner = 'Team 2'
-                if not bet.real:
-                    f = pred.delta_ev_2 / pred.match.odd2
-                    bet.amount = 50 * f
+                f = pred.delta_ev_2 / pred.match.odd2
+                bet.amount = 50 * f
                 bet.save()
                 pred.save()
                 print(bet,
@@ -165,8 +161,7 @@ class AutoBettor():
                 bet, created = Bet.objects.get_or_create(match=pred.match,
                                                          strategy='Naive')
                 bet.winner = 'Team 1'
-                if not bet.real:
-                    bet.amount = 1
+                bet.amount = 1
                 bet.save()
                 print(bet,
                       "new"*created + "not new" * (1-created),
@@ -176,8 +171,7 @@ class AutoBettor():
                 bet, created = Bet.objects.get_or_create(match=pred.match,
                                                          strategy='Naive')
                 bet.winner = 'Team 2'
-                if not bet.real:
-                    bet.amount = 1
+                bet.amount = 1
                 bet.save()
                 print(bet,
                       "new"*created + "not new" * (1-created),
@@ -312,7 +306,7 @@ class AutoBettor():
             match_id = pred['match_id']
             odd_p_1 = float(pred['odd_p_1'])
             odd_p_2 = float(pred['odd_p_2'])
-
+            match = Match.objects.filter(match_id=match_id)[0]
             delta_ev_1 = float(match.odd1)/odd_p_1 - 1
             delta_ev_2 = float(match.odd2)/odd_p_2 - 1
 
