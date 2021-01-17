@@ -249,7 +249,7 @@ class AutoBettor():
                 status = 'Scheduled'
             right_win = 'bet-winner-right' in match.get_attribute('class').split()
             left_win = 'bet-winner-left' in match.get_attribute('class').split()
-            winner = left_win* 'Team 1' + right_win* 'Team 2'
+            winner = left_win * 'Team 1' + right_win * 'Team 2'
 
             if len(team1_odd) > 2 and len(team2_odd) > 2:
                 team1_odd = float(team1_odd[1:])
@@ -306,14 +306,13 @@ class AutoBettor():
 
         return matches_data
 
-    def save_predictions(self, predictions, model='SVM'):
+    def save_predictions(self, predictions, model='LOGREG'):
         for i in range(len(predictions)):
             pred = predictions.iloc[i]
             match_id = pred['match_id']
             odd_p_1 = float(pred['odd_p_1'])
             odd_p_2 = float(pred['odd_p_2'])
 
-            match = Match.objects.filter(match_id=match_id)[0]
             delta_ev_1 = float(match.odd1)/odd_p_1 - 1
             delta_ev_2 = float(match.odd2)/odd_p_2 - 1
 

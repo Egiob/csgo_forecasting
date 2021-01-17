@@ -17,8 +17,21 @@ def add_to_history(matches, verbose=0):
                 print("Match not finished yet, can't add to history")
         else:
             row = [0]*5
-            row[0] = parse_team_name(match['opponents'][0]['opponent']['name'])
-            row[1] = parse_team_name(match['opponents'][1]['opponent']['name'])
+            row[0], found_1 = parse_team_name(match['opponents'][0]['opponent']['name'],
+                                              return_found=True)
+            row[1], found_2 = parse_team_name(match['opponents'][1]['opponent']['name'],
+                                              return_found=True)
+            if not found_1:
+                with open('var/teams_map.csv', 'a', encoding = 'utf-8') as f:
+                    f.write(row[0]+';\n')
+                print(f'{row[0]} added to map')
+                f.close()
+            if not found_2:
+                with open('var/teams_map.csv', 'a', encoding = 'utf-8') as f:
+                    f.write(row[1]+';\n')
+                f.close()
+                print(f'{row[1]} added to map')
+
             row[2] = match['scheduled_at'].to_pydatetime()
             score = str(match['results'][0]['score'])
             score += " - " + str(match['results'][1]['score'])
@@ -39,6 +52,32 @@ def add_to_history(matches, verbose=0):
                     c.execute(query, infos)
                     conn.commit()
                 conn.close()
+    
+
+
+def parse_team_name(el, return_found=False):
+    rem = ['team', 'e-sports', 'esports', 'esport',
+           'gaming', 'club', 'clan', 'international']
+    my_map = pd.read_csv(DATA_DIR + 'teams_map.csv', sep=';').values.tolist()
+
+    def team_map(x, map_, return_found=False):
+        x = x.strip()
+        found = False
+        for val in map_:
+            if x in val and not found:
+                found = True
+                x = val[0]
+        if return_found:
+            return x, found
+        else:
+            return x
+
+    l = el.strip().lower().split(' ')
+    for word in rem:
+        if word in l:
+            l.remove(word)
+            el = " ".join(l)
+    return team_map(el.lower(), my_map, return_found)
 
 
 def init_db(reboot=False):
@@ -79,23 +118,6 @@ def parse_date(date):
     return date
 
 
-def parse_team_name(el):
-    rem = ['team', 'e-sports', 'esports', 'esport',
-           'gaming', 'club', 'clan', 'international']
-    my_map = pd.read_csv(DATA_DIR + 'teams_map.csv', sep=';').values.tolist()
-
-    def team_map(x, map_):
-        x = x.strip()
-        for val in map_:
-            if x in val:
-                return val[0]
-        return x
-    l = el.strip().lower().split(' ')
-    for word in rem:
-        if word in l:
-            l.remove(word)
-            el = " ".join(l)
-    return team_map(el.lower(), my_map)
 
 
 class FeaturesBuilder:

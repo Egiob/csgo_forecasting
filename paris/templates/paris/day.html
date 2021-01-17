@@ -27,7 +27,7 @@
 
 <body>
 
-    {% if matches %}
+    {% if mbs %}
     {% for mb in mbs %}
     {% if mb.0.status == "Scheduled" %}
     <div class="lounge-bets-items__item sys-betting bet_coming" data-id="{{mb.0.match_id}}">
@@ -335,7 +335,7 @@
              lounge-match-date_canceled
          {% elif mb.0.status == 'Rescheduled' %} 
              lounge-match-date_rescheduled
-         {% endif %}">
+         {% endif %} ">
 
                         <div class="lounge-match-date__date sys-time-fixed"> {{mb.0.date}} </div>
                     </div>
@@ -350,7 +350,10 @@
          {% if mb.1.winner == 'Team 1' %}lounge-team_bet lounge-team_EUR
          {% endif %} 
          {% if mb.0.winner == 'Team 1' %}lounge-team_win 
-         {% endif %} ">
+         {% endif %} 
+         {% if mb.1.amount == 0 %}
+         lounge-team_bet 
+         {% endif %}">
 
                             <div class="lounge-team__info">
                                 <div class="lounge-team__title sys-t1name">  {{mb.0.team1}} </div>
@@ -373,13 +376,16 @@
                     </div>
                     <div class="lounge-match__bo sys-bo"> {{mb.0.bo}} </div>
                     <div class="lounge-match__team lounge-match__team_right">
-                        <div class="lounge-team lounge-team_right sys-team-right lounge-team_EUR
+                        <div class="lounge-team lounge-team_right sys-team-right 
                     {% if mb.0.winner == 'Team 2' %}
                         lounge-team_win 
                      {% endif %} 
             
                      {% if mb.1.winner == 'Team 2' %}
-                        lounge-team_bet 
+                        lounge-team_bet lounge-team_EUR
+                     {% endif %}
+                     {% if mb.1.amount == 0 %}
+                     lounge-team_bet 
                      {% endif %}"> 
                             <div class="lounge-team__info">
                                 <div class="lounge-team__title sys-t2name"> {{mb.0.team2}}</div>

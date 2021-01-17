@@ -15,20 +15,16 @@ from .models import Match
 class MatchPageScrapper():
     def __init__(self):
         options = webdriver.ChromeOptions()
-        #options.add_argument('--ignore-certificate-errors')
-        #options.add_argument("--test-type")
         options.add_argument("--incognito")
-        #.add_argument('--headless')
-        #options.add_argument("--user-data-dir=selenium") 
-        options.add_argument("start-maximized")
-        options.add_argument("disable-infobars")
-        options.add_argument("--disable-extensions")
-        options.add_argument("--disable-gpu")
+        options.add_argument('--ignore-certificate-errors')
+        options.add_argument("--test-type")
+        options.add_argument("--user-data-dir=driver_data_populate") 
+        options.add_experimental_option("excludeSwitches", ["enable-automation"])
+        options.add_experimental_option('useAutomationExtension', False)
+        options.add_argument("--disable-blink-features=AutomationControlled")
+        options.add_argument("--remote-debugging-port=9223")
         options.add_argument("--no-sandbox")
         options.add_argument("--disable-dev-shm-usage")
-        #options.add_argument("--remote-debugging-port=9222")
-        #options.add_argument("--window-size=1920,1080")
-        #options.add_argument("--kiosk")
         self.already_visited = list(map(lambda x:x.match_id,Match.objects.all().only("match_id")))
         self.driver =webdriver.Chrome(options = options)
         self.driver.get('https://csgolounge.com/fr/')
@@ -96,7 +92,7 @@ class MatchPageScrapper():
             date = datetime.now(pytz.utc)
             status = 'Empty'
             match_id = self.driver.current_url.split('/')[-2]
-            row = pd.DataFrame([['','',0,0,
+            row = pd.DataFrame([['','', 0., 0.,
                                  '','','',status,'',date,match_id]],
             columns= ["team1",'team2','odd1','odd2',
                       'logo1','logo2','bo','status','winner','date','match_id'])

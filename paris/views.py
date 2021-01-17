@@ -3,7 +3,7 @@ from django.urls import reverse_lazy
 from django.views import generic
 from django.db.models import Q
 from django.utils import timezone
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
 import pytz
 from .utils import compute_time_to_go
 from .forms import BetForm
@@ -49,12 +49,15 @@ class DayView(generic.ListView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         strategy = self.kwargs['strat']
-        date = self.kwargs['date']
-        date = datetime.strptime(date, "%d.%m.%Y")
-        date = pytz.timezone("Europe/Paris").localize(date, is_dst=None)
-        date_next_day = date + timedelta(days=1)
-        IN_DAY = Q(date__gte=date, date__lt=date_next_day)
-        matches = Match.objects.filter(IN_DAY).order_by('-date')
+        date_ = self.kwargs['date']
+        date_ = datetime.strptime(date_, "%d.%m.%Y")
+        date_ = pytz.timezone("Europe/Paris").localize(date_, is_dst=None)
+        print(date_)
+        date_next_day = date_ + timedelta(days=1)
+        IN_DAY = Q(date__gte=date_, date__lt=date_next_day)
+        matches = Match.objects.filter(IN_DAY).filter(prediction__pk__isnull=False).order_by('-date')
+        compute_time_to_go(matches)
+ 
         if strategy == 'ev':
             bets = Bet.objects.filter(match__in=matches,
                                       strategy='EV').order_by('-match__date')
@@ -68,14 +71,8 @@ class DayView(generic.ListView):
         return context
 
     def get_queryset(self):
-        date = self.kwargs['date']
-        date = datetime.strptime(date, "%d.%m.%Y")
-        date = pytz.timezone("Europe/Paris").localize(date, is_dst=None)
-        date_next_day = date + timedelta(days=1)
-        IN_DAY = Q(date__gte=date, date__lt=date_next_day)
-        matches = Match.objects.filter(IN_DAY).order_by('-date')
-        compute_time_to_go(matches)
-        return matches
+       
+        return None
 
 
 class BetView(generic.CreateView):
@@ -109,11 +106,9 @@ class BetHistory2(generic.ListView):
         dates = [date_0-timezone.timedelta(days=i)
                  for i in range(n)]
         totals = []
-        for i in range(n-1):     
+        for i in range(n-1):
             date_next_day = dates[i] + timedelta(days=1)
-            bets_today = (bets.filter(Q(match__prediction__delta_ev_1__gte=ev) |
-                                      Q(match__prediction__delta_ev_2__gte=ev))
-                              .filter(match__date__lt=date_next_day,
+            bets_today = (bets.filter(match__date__lt=date_next_day,
                                       match__date__gte=dates[i])
                               .order_by('-match__date'))
             totals.append(np.array(list(map(lambda x: x.gain, bets_today))).sum())
@@ -122,23 +117,7 @@ class BetHistory2(generic.ListView):
         return context
 
     def get_queryset(self):
-        strategy = self.kwargs['strat']
-        if strategy == 'ev':
-            ev = self.kwargs['ev']
-
-            bets = (Bet.objects.filter(strategy='EV')
-                    .filter(Q(match__prediction__delta_ev_1__gte=ev) |
-                            Q(match__prediction__delta_ev_2__gte=ev))
-                    .order_by('-match__date'))
-            return bets
-
-        elif strategy == 'naive':
-            bets = Bet.objects.filter(strategy='Naive').order_by('-match__date')
-            return bets
-
-        elif strategy == 'kelly':
-            bets = Bet.objects.filter(strategy='Kelly').order_by('-match__date')
-            return bets
+        return None
 
 
 class PredictionView(generic.ListView):

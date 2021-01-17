@@ -1,5 +1,3 @@
-{% if bets %}
-
 
 {% if total >= 0 %}
 <h2 class = 'text-success'> 
@@ -22,10 +20,7 @@ Gain = {{total}} </h2>
   </thead>
   <tbody>
 {% for date,total in totals.items%}
-
-
-
-
+  <tr data-href='day/{{date|date:"d.m.Y"}}/{{strategy}}'> 
       <td>{{date|date:"d M"}}</td>
       {% if total >= 0 %}
       <td class='text-success'>
@@ -34,13 +29,14 @@ Gain = {{total}} </h2>
             {% endif %}
       {{total}}</td>
     </tr>
+
 {% endfor %}
   </tbody>
 </table> 
+<script>
+  $('tr[data-href]').on("click", function() {
+    document.location = $(this).data('href');
+  });
+</script>
 
-
-
-{% else %}
-    <p>No bet are available.</p>
-{% endif %}
 

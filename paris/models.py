@@ -21,9 +21,7 @@ BET_STRATEGY = [('Naive', 'Naive'),
                 ('EV', 'EV'),
                 ('HLTV', 'HLTV')]
 
-MODELS = [('NN', 'NN'),
-          ('XGB', 'XGB'),
-          ('HLTV', 'HLTV')]
+MODELS = [('LOGREG', 'LOGREG')]
 
 
 class Match(models.Model):
