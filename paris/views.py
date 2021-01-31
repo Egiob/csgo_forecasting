@@ -18,7 +18,7 @@ DATA_DIR = 'var/'
 class IndexView(generic.TemplateView):
     template_name = 'paris/index.html'
     context_object_name = ''
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         matches = Match.objects.filter(MATCH_NOT_FINISHED).order_by('date')
@@ -33,7 +33,6 @@ def get_bets_list_by_ev(request):
     ev_trsh = request.GET.get('ev')
     data = {'bets': Bet.objects.filter(ev__gte=ev_trsh)}
     return render(request, '/bet_history', data)
-
 
 
 class DayView(generic.ListView):
@@ -98,9 +97,9 @@ class BetHistory2(generic.ListView):
         date_0 = timezone.now().replace(second=0, minute=0,
                                         hour=0, microsecond=0)
         dates = [date_0-timezone.timedelta(days=i)
-                 for i in range(n)]
+                 for i in range(-1, n)]
         totals = []
-        for i in range(n-1):
+        for i in range(0, n+1):
             date_next_day = dates[i] + timedelta(days=1)
             bets_today = (bets.filter(match__date__lt=date_next_day,
                                       match__date__gte=dates[i])
