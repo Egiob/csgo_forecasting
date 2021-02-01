@@ -2,6 +2,7 @@ from django.db.models import Q
 from django.utils import timezone
 
 from selenium import webdriver
+from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -63,7 +64,8 @@ class AutoBettor():
         options = webdriver.ChromeOptions()
         options.add_argument('--ignore-certificate-errors')
         options.add_argument("--test-type")
-        options.add_argument("--user-data-dir=driver_data") 
+        options.add_argument("--user-data-dir="+DATA_DIR+"driver_data") 
+        options.add_argument('--disable-gpu')
         options.add_experimental_option("excludeSwitches", ["enable-automation"])
         options.add_experimental_option('useAutomationExtension', False)
         options.add_argument("--disable-blink-features=AutomationControlled")
@@ -223,8 +225,9 @@ class AutoBettor():
         matches = self.driver.find_elements_by_class_name("lounge-bets-items__item")
         for match in matches:
             date = match.find_elements_by_class_name('lounge-match-date__date')[0].get_attribute("innerHTML")
-            date = datetime.strptime(date.replace(" ","")[:-3],"%d.%m.%Y,%H:%M")
-            date = pytz.timezone("Europe/Paris").localize(date, is_dst=None)
+            date = datetime.strptime(date.replace(" ","")[:-3], "%d.%m.%Y,%H:%M")
+            tz = timezone.get_current_timezone()
+            date = tz.localize(date, is_dst=None)
             bo = match.find_elements_by_class_name('sys-bo')[0].get_attribute('innerHTML')
             team1 = match.find_elements_by_class_name('lounge-team_left')[0]
             team1_name = parse_team_name(team1.find_elements_by_class_name('lounge-team__title')[0].get_attribute('innerHTML'))
@@ -269,7 +272,8 @@ class AutoBettor():
         for match in matches:
             date = match.find_elements_by_class_name('lounge-match-date__date')[0].get_attribute("innerHTML")
             date = datetime.strptime(date.replace(" ","")[:-3],"%d.%m.%Y,%H:%M")
-            date = pytz.timezone("Europe/Paris").localize(date, is_dst=None)
+            tz = timezone.get_current_timezone()
+            date = tz.localize(date, is_dst=None)
             bo = match.find_elements_by_class_name('sys-bo')[0].get_attribute('innerHTML')
             team1 = match.find_elements_by_class_name('lounge-team_left')[0]
             team1_name = parse_team_name(team1.find_elements_by_class_name('lounge-team__title')[0].get_attribute('innerHTML'))
@@ -321,6 +325,9 @@ class AutoBettor():
         features['odd_p_2'] = 1/(probas[:, 0] + eps)
         return features
 
+    def real_bet(self):
+        pass
+
     def auto_bet(self, amount='0.5'):
         k = 0
         while 1:
@@ -357,6 +364,7 @@ class AutoBettor():
             predictions = self.predict(features)
             self.save_predictions(predictions)
             self.auto_predict()
+            self.real_bet()
             print('Sleeping for 30s')
             for j in range(30):
                 #print('#'*j + ' ' + str((j*100)//30) +'%')
