@@ -44,11 +44,13 @@ class DayView(generic.ListView):
         strategy = self.kwargs['strat']
         date_ = self.kwargs['date']
         date_ = datetime.strptime(date_, "%d.%m.%Y")
-        date_ = pytz.timezone("Europe/Paris").localize(date_, is_dst=None)
+        tz = timezone.get_current_timezone()
+        date_ = tz.localize(date_, is_dst=None)
         print(date_)
         date_next_day = date_ + timedelta(days=1)
         IN_DAY = Q(date__gte=date_, date__lt=date_next_day)
-        matches = Match.objects.filter(IN_DAY).filter(prediction__pk__isnull=False).order_by('-date')
+        NOT_BET = Q(status='Rescheduled')|Q(status='Canceled')
+        matches = Match.objects.filter(IN_DAY).exclude(NOT_BET).filter(prediction__pk__isnull=False).order_by('-date')
         compute_time_to_go(matches)
  
         if strategy == 'ev':
@@ -60,6 +62,7 @@ class DayView(generic.ListView):
         elif strategy == 'naive':
             bets = Bet.objects.filter(match__in=matches,
                                       strategy='Naive').order_by('-match__date')
+        print(len(bets),len(matches))
         context['mbs'] = zip(matches, bets)
         return context
 
