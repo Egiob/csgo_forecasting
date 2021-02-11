@@ -49,7 +49,7 @@ class DayView(generic.ListView):
         print(date_)
         date_next_day = date_ + timedelta(days=1)
         IN_DAY = Q(date__gte=date_, date__lt=date_next_day)
-        NOT_BET = Q(status='Rescheduled')|Q(status='Canceled')
+        NOT_BET = Q(status='Rescheduled')|Q(status='Canceled')|Q(status='Expired')
         matches = Match.objects.filter(IN_DAY).exclude(NOT_BET).filter(prediction__pk__isnull=False).order_by('-date')
         compute_time_to_go(matches)
  

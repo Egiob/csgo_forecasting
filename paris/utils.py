@@ -2,7 +2,11 @@ from django.db.models import Q
 from django.utils import timezone
 
 from selenium import webdriver
-from selenium.common.exceptions import StaleElementReferenceException
+from selenium.common.exceptions import (StaleElementReferenceException,
+                                        NoSuchElementException,
+                                        UnexpectedAlertPresentException,
+                                        ElementNotInteractableException,
+                                        ElementClickInterceptedException)
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
@@ -13,6 +17,7 @@ from .module_data import parse_team_name, FeaturesBuilder
 import pytz
 import time
 import pandas as pd
+import random
 
 from datetime import datetime
 
@@ -76,7 +81,8 @@ class AutoBettor():
         self.driver.get('https://csgolounge.com/fr/')
         self.FB = FeaturesBuilder()
         self.clf = clf
-
+        self.B = 0
+        
     def auto_predict(self, fast=False):
         """
         Place bets using decision rules based on different strategies
@@ -99,8 +105,7 @@ class AutoBettor():
                 bet.save()
                 pred.save()
                 print(bet,
-                      "new"*created + "not new" * (1-created),
-                      f"with strategy : {bet.strategy}")
+                      "; "+"new"*created + "not new" * (1-created))
             elif decision_ev == 0:
                 bet, created = Bet.objects.get_or_create(match=pred.match, strategy='EV')
                 bet.winner = 'Team 2'
@@ -108,8 +113,7 @@ class AutoBettor():
                 bet.save()
                 pred.save()
                 print(bet,
-                      "new"*created + "not new" * (1-created),
-                      f"with strategy : {bet.strategy}")
+                      "; "+"new"*created + "not new" * (1-created))
             elif decision_ev == -1:
                 bet, created = Bet.objects.get_or_create(match=pred.match,
                                                          strategy='EV')
@@ -119,33 +123,30 @@ class AutoBettor():
                 pred.save()
                 print(f'Not a good bet {pred.match}')
                 print(bet,
-                      "new"*created + "not new" * (1-created),
-                      f"with strategy : {bet.strategy}")
+                      "; "+"new"*created + "not new" * (1-created))
 
             if decision_ev == 1:
                 bet, created = Bet.objects.get_or_create(match=pred.match,
                                                          strategy='Kelly')
                 bet.winner = 'Team 1'
                 f = pred.delta_ev_1 / pred.match.odd1
-                bet.amount = 50 * f
+                bet.amount = self.B * float(f)
 
                 bet.save()
                 pred.save()
                 print(bet,
-                      "new"*created + "not new" * (1-created),
-                      f"with strategy : {bet.strategy}")
+                      "; "+"new"*created + "not new" * (1-created))
 
             elif decision_ev == 0:
                 bet, created = Bet.objects.get_or_create(match=pred.match,
                                                          strategy='Kelly')
                 bet.winner = 'Team 2'
                 f = pred.delta_ev_2 / pred.match.odd2
-                bet.amount = 50 * f
+                bet.amount = self.B * float(f)
                 bet.save()
                 pred.save()
                 print(bet,
-                      "new"*created + "not new" * (1-created),
-                      f"with strategy : {bet.strategy}")
+                      "; "+"new"*created + "not new" * (1-created))
             elif decision_ev == -1:
                 bet, created = Bet.objects.get_or_create(match=pred.match,
                                                          strategy='Kelly')
@@ -155,8 +156,7 @@ class AutoBettor():
                 pred.save()
                 print(f'Not a good bet {pred.match}')
                 print(bet,
-                      "new"*created + "not new" * (1-created),
-                      f"with strategy : {bet.strategy}")
+                      "; "+"new"*created + "not new" * (1-created))
 
             decision_naive = decision(pred, 'Naive')
             if decision_naive == 1:
@@ -166,8 +166,7 @@ class AutoBettor():
                 bet.amount = 1
                 bet.save()
                 print(bet,
-                      "new"*created + "not new" * (1-created),
-                      f"with strategy : {bet.strategy}")
+                      "; "+"new"*created + "not new" * (1-created))
 
             elif decision_naive == 0:
                 bet, created = Bet.objects.get_or_create(match=pred.match,
@@ -176,8 +175,7 @@ class AutoBettor():
                 bet.amount = 1
                 bet.save()
                 print(bet,
-                      "new"*created + "not new" * (1-created),
-                      f"with strategy : {bet.strategy}")
+                      "; "+"new"*created + "not new" * (1-created))
 
         bets = Bet.objects.filter(status='Pending')
         for bet in bets:
@@ -260,7 +258,8 @@ class AutoBettor():
 
         twelve_hours_ago = timezone.now() - timezone.timedelta(hours=12)
         Match.objects.filter(Q(date__lte = twelve_hours_ago) & (Q(status = "Scheduled")|Q(status="Live"))).update(status='Expired')
-
+        total_button = self.driver.find_elements_by_class_name("sys-total-tab")[0]
+        total_button.click()
 
     def scrap_upcoming_matches(self):
         wait = WebDriverWait(self.driver, 10)
@@ -325,18 +324,27 @@ class AutoBettor():
         features['odd_p_2'] = 1/(probas[:, 0] + eps)
         return features
 
-    def real_bet(self):
-        pass
+    def get_bankroll(self):
+        class_ = 'balance-button__value'
+        element = self.driver.find_element_by_class_name(class_)
+        self.B = float(element.get_attribute('innerHTML'))
+        return
+    
+
+   
 
     def auto_bet(self, amount='0.5'):
         k = 0
+        refresh_counter = 0
         while 1:
+            self.get_bankroll()
             k += 1
             now = datetime.now()
             minutes = str(now.minute)
             if len(minutes) < 2:
                 minutes = "0" + minutes
             print(f'Starting iteration {k} at {now.hour}h{minutes}')
+            print(f'Bankroll : {self.B:.2f}€')
             try:
                 matches_data = self.scrap_upcoming_matches()
                 for i in range(matches_data.shape[0]):
@@ -350,23 +358,31 @@ class AutoBettor():
                           bo=bo, date=date, match_id=match_id).save()
                 print('Upcoming matches : ')
                 print(matches_data.iloc[:10, :4])
+
+                # m = 5
+                # to_m_min = timezone.now() + timezone.timedelta(seconds=m*60)
+                # for_m_min = timezone.now() - timezone.timedelta(seconds=m*60)
+
+                features = self.FB.get_features(matches_data,
+                                                features=['match_id', 'odd1', 'odd2', 'date', 'elo1',
+                                                        'elo2', 'F_S_team1', 'F_S_team2'])
+                predictions = self.predict(features)
+                self.save_predictions(predictions)
+
             except IndexError:
                 print("Can't scrap matches")
-            # m = 5
-            # to_m_min = timezone.now() + timezone.timedelta(seconds=m*60)
-            # for_m_min = timezone.now() - timezone.timedelta(seconds=m*60)
 
-            features = self.FB.get_features(matches_data,
-                                            features=['odd1', 'odd2',
-                                                      'date', 'elo1',
-                                                      'elo2', 'F_S_team1',
-                                                      'F_S_team2', 'match_id'])
-            predictions = self.predict(features)
-            self.save_predictions(predictions)
             self.auto_predict()
-            self.real_bet()
+            self.real_bet(validate=False)
+            if refresh_counter < 10 + (random.random()-1/2) * 5:
+                refresh_counter += 1
+            else:
+                self.driver.get('https://csgolounge.com/fr/')
+                refresh_counter = 0
             print('Sleeping for 30s')
             for j in range(30):
                 #print('#'*j + ' ' + str((j*100)//30) +'%')
                 time.sleep(1)
+
+            
             print("##################")
