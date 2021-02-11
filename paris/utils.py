@@ -325,11 +325,11 @@ class AutoBettor():
         return features
 
     def get_bankroll(self):
-        class_ = 'balance-button__value'
-        element = self.driver.find_element_by_class_name(class_)
-        self.B = float(element.get_attribute('innerHTML'))
-        return
+        self.B = 50
+        return 
     
+    def real_bet(self):
+        return 
 
    
 
